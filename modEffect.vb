@@ -62,6 +62,28 @@ Module modEffect
                            ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer, ByVal startradius As Double) As Bitmap
         Dim output As New Bitmap(input.Width, input.Height, Imaging.PixelFormat.Format24bppRgb)
 
+        Dim center As New PointF(input.Width / 2.0#, input.Height / 2.0#)
+        Dim diagonal As Double = Math.Sqrt(input.Width ^ 2 + input.Height ^ 2)
+        Dim ratio As Double = CDbl(currentIndex - startFrame) / CDbl(endFrame - startFrame)
+        Dim frameradius As Double = diagonal / 2.0# * ratio
+        For x As Integer = 0 To output.Width - 1
+            For y As Integer = 0 To output.Height - 1
+                Dim radius As Double = Math.Sqrt((x - center.X) ^ 2 + (y - center.Y) ^ 2)
+                Dim angle As Double = Math.Atan2(y - center.Y, x - center.X)
+                Dim c As Color
+                If radius > frameradius Or frameradius = 0 Then
+                    c = GetPixel(input, x, y)
+                Else
+                    Dim offset As Double = amplitude * Math.Sin(2 * Math.PI * frequency * (radius / frameradius))
+                    Dim newRadius As Double = radius + offset
+                    Dim newX As Integer = (newRadius * Math.Cos(angle)) + center.X
+                    Dim newY As Integer = input.Height - ((-newRadius * Math.Sin(angle)) + center.Y)
+                    c = GetPixel(input, CInt(newX), CInt(newY))
+                End If
+                output.SetPixel(x, y, c)
+            Next
+        Next
+
         Return output
     End Function
 
