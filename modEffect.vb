@@ -30,6 +30,21 @@ Module modEffect
                             ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer) As Bitmap
         Dim output As New Bitmap(input.Width, input.Height, Imaging.PixelFormat.Format24bppRgb)
 
+        Dim ratio As Double
+        ratio = CDbl(currentIndex - startFrame) / CDbl(endFrame - startFrame)
+        Dim multiplier As Double
+        multiplier = 1 - ratio
+        Dim r, g, b As Integer
+        Dim c As Color
+        For x As Integer = 0 To output.Width - 1
+            For y As Integer = 0 To output.Height - 1
+                c = GetPixel(input, x, y)
+                r = c.R * (endRate + (1 - endRate) * multiplier)
+                g = c.G * (endRate + (1 - endRate) * multiplier)
+                b = c.B * (endRate + (1 - endRate) * multiplier)
+                output.SetPixel(x, y, Color.FromArgb(r, g, b))
+            Next
+        Next
 
         Return output
     End Function
