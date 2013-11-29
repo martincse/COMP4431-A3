@@ -188,7 +188,50 @@ Module modEffect
     Public Function Transition(ByRef input1 As Bitmap, ByRef input2 As Bitmap, ByVal type As Integer, ByVal duration As Double, ByVal orientation As Integer, _
                                ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer, ByVal newOp As Boolean) As Bitmap
         Dim output As New Bitmap(input1.Width, input1.Height, Imaging.PixelFormat.Format24bppRgb)
-    
+        Dim percentage As Double = CDbl(currentIndex - startFrame) / CDbl(endFrame - startFrame)
+
+        If newOp Then
+
+            Select Case type
+
+                'Wipe
+                Case 0
+                    Dim c As Color
+                    Dim w As Integer = output.Width - 1
+                    Dim h As Integer = output.Height - 1
+                    For x As Integer = 0 To w
+                        For y As Integer = 0 To h
+                            c = GetPixel(input1, x, y)
+                            Select Case orientation
+                                Case 0
+                                    If x / input1.Width < percentage Then
+                                        c = GetPixel(input2, x * input2.Width / input1.Width, y * input2.Height / input1.Height)
+                                    End If
+                                Case 1
+                                    If (w - x) / input1.Width < percentage Then
+                                        c = GetPixel(input2, x * input2.Width / input1.Width, y * input2.Height / input1.Height)
+                                    End If
+                                Case 2
+                                    If y / input1.Height < percentage Then
+                                        c = GetPixel(input2, x * input2.Width / input1.Width, y * input2.Height / input1.Height)
+                                    End If
+                                Case 3
+                                    If (h - y) / input1.Height < percentage Then
+                                        c = GetPixel(input2, x * input2.Width / input1.Width, y * input2.Height / input1.Height)
+                                    End If
+                            End Select
+
+                            output.SetPixel(x, y, c)
+                        Next
+                    Next
+                Case 1
+
+            End Select
+
+        End If
+
+
+
         Return output
     End Function
     Public Function Timeshift(ByRef input1 As Bitmap, ByRef input2 As Bitmap, ByVal position As Integer, ByVal region As Integer, _
