@@ -248,31 +248,26 @@ Module modEffect
 
                 'Wipe
                 Case 0
+                    Dim condition As Boolean = False
                     Dim c As Color
-                    Dim w As Integer = output.Width - 1
-                    Dim h As Integer = output.Height - 1
-                    For x As Integer = 0 To w
-                        For y As Integer = 0 To h
+
+                    For x As Integer = 0 To output.Width - 1
+                        For y As Integer = 0 To output.Height - 1
                             c = GetPixel(input1, x, y)
                             Select Case orientation
                                 Case 0
-                                    If x / input1.Width < percentage Then
-                                        c = GetPixel(input2, x * input2.Width / input1.Width, y * input2.Height / input1.Height)
-                                    End If
+                                    condition = x / input1.Width < percentage
                                 Case 1
-                                    If (w - x) / input1.Width < percentage Then
-                                        c = GetPixel(input2, x * input2.Width / input1.Width, y * input2.Height / input1.Height)
-                                    End If
+                                    condition = (input1.Width - x) / input1.Width < percentage
                                 Case 2
-                                    If y / input1.Height < percentage Then
-                                        c = GetPixel(input2, x * input2.Width / input1.Width, y * input2.Height / input1.Height)
-                                    End If
+                                    condition = y / input1.Height < percentage
                                 Case 3
-                                    If (h - y) / input1.Height < percentage Then
-                                        c = GetPixel(input2, x * input2.Width / input1.Width, y * input2.Height / input1.Height)
-                                    End If
+                                    condition = (input1.Height - y) / input1.Height < percentage
                             End Select
 
+                            If condition Then
+                                c = GetPixel(input2, x * input2.Width / input1.Width, y * input2.Height / input1.Height)
+                            End If
                             output.SetPixel(x, y, c)
                         Next
                     Next
