@@ -70,46 +70,98 @@ Module modEffect
 
     Dim frames As Generic.List(Of Bitmap) = New Generic.List(Of Bitmap)
 
+'    Public Function MotionBlur(ByRef input As Bitmap, ByVal blurCount As Integer, _
+'                               ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer, ByVal newOp As Boolean, _
+'                               ByVal dirname As String) As Bitmap
+'        Dim output As New Bitmap(input.Width, input.Height, Imaging.PixelFormat.Format24bppRgb)
+'
+'        Dim r, g, b As Integer
+'        Dim c As Color
+'        Dim buffer As Bitmap = New Bitmap(input.Width, input.Height, Imaging.PixelFormat.Format24bppRgb)
+'
+'        If (frames.Count = blurCount) Then
+'
+'            For frame As Integer = currentIndex - blurCount + 1 To currentIndex
+'                For x As Integer = 0 To output.Width - 1
+'                    For y As Integer = 0 To output.Height - 1
+'                        c = GetPixel(input, x, y)
+'                        r = c.R + GetPixel(frames.Item(frame), x, y).R
+'                        g = c.G + GetPixel(frames.Item(frame), x, y).G
+'                        b = c.B + GetPixel(frames.Item(frame), x, y).B
+'                        buffer.SetPixel(x, y, Color.FromArgb(r, g, b))
+'                    Next
+'                Next
+'            Next
+'
+'            For x As Integer = 0 To output.Width - 1
+'                For y As Integer = 0 To output.Height - 1
+'                    c = GetPixel(buffer, x, y)
+'                    r = c.R / blurCount
+'                    g = c.G / blurCount
+'                    b = c.B / blurCount
+'                    output.SetPixel(x, y, Color.FromArgb(r, g, b))
+'                Next
+'            Next
+'
+'            frames.Clear()
+'        Else
+'            frames.Add(input)
+'        End If
+'
+'        Return output
+'    End Function
+
     Public Function MotionBlur(ByRef input As Bitmap, ByVal blurCount As Integer, _
-                               ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer, ByVal newOp As Boolean, _
-                               ByVal dirname As String) As Bitmap
+                                  ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer, ByVal newOp As Boolean, _
+                                  ByVal dirname As String) As Bitmap
         Dim output As New Bitmap(input.Width, input.Height, Imaging.PixelFormat.Format24bppRgb)
+        ' You need to initialize the buffers at the start of the operation
 
-        Dim r, g, b As Integer
-        Dim c As Color
-        Dim buffer As Bitmap = New Bitmap(input.Width, input.Height, Imaging.PixelFormat.Format24bppRgb)
-
-        If (frames.Count = blurCount) Then
-
-            For frame As Integer = currentIndex - blurCount + 1 To currentIndex
-                For x As Integer = 0 To output.Width - 1
-                    For y As Integer = 0 To output.Height - 1
-                        c = GetPixel(input, x, y)
-                        r = c.R + GetPixel(frames.Item(frame), x, y).R
-                        g = c.G + GetPixel(frames.Item(frame), x, y).G
-                        b = c.B + GetPixel(frames.Item(frame), x, y).B
-                        buffer.SetPixel(x, y, Color.FromArgb(r, g, b))
-                    Next
-                Next
-            Next
-
-            For x As Integer = 0 To output.Width - 1
-                For y As Integer = 0 To output.Height - 1
-                    c = GetPixel(buffer, x, y)
-                    r = c.R / blurCount
-                    g = c.G / blurCount
-                    b = c.B / blurCount
-                    output.SetPixel(x, y, Color.FromArgb(r, g, b))
-                Next
-            Next
-
-            frames.Clear()
+        Static Dim bufferR(input.Width, input.Height) As Integer
+        Static Dim bufferG(input.Width, input.Height) As Integer
+        Static Dim bufferB(input.Width, input.Height) As Integer
+        Dim startIndex As Integer
+        Array.Clear(bufferR, 0, bufferR.Length)
+        Array.Clear(bufferG, 0, bufferG.Length)
+        Array.Clear(bufferB, 0, bufferB.Length)
+        If ((currentIndex - blurCount + 1) < 0) Then
+            startIndex = 0
         Else
-            frames.Add(input)
+            startIndex = currentIndex - blurCount + 1
         End If
+
+
+        For frameNo As Integer = startIndex To currentIndex
+            Dim frame As Bitmap = New Bitmap(dirname & "\f" & CStr(frameNo) & ".bmp")
+            Dim fpin As New FastPixel(frame)
+            fpin.Lock()
+            For x As Integer = 0 To input.Width - 1
+                For y As Integer = 0 To input.Height - 1
+                    bufferR(x, y) = (bufferR(x, y) + fpin.GetPixel(x, y).R)
+                    bufferG(x, y) = (bufferG(x, y) + fpin.GetPixel(x, y).G)
+                    bufferB(x, y) = (bufferB(x, y) + fpin.GetPixel(x, y).B)
+                Next
+            Next
+            fpin.Unlock(True)
+        Next
+
+        Dim fpout As New FastPixel(output)
+        fpout.Lock()
+        For x As Integer = 0 To input.Width - 1
+            For y As Integer = 0 To input.Height - 1
+                Dim red As Integer = Math.Round((bufferR(x, y) / blurCount))
+                Dim green As Integer = Math.Round((bufferG(x, y) / blurCount))
+                Dim blue As Integer = Math.Round((bufferB(x, y) / blurCount))
+                fpout.SetPixel(x, y, Color.FromArgb(red, green, blue))
+            Next
+        Next
+
+        fpout.Unlock(True)
+        output = fpout.Bitmap
 
         Return output
     End Function
+
 
     Public Function Ripple(ByRef input As Bitmap, ByVal amplitude As Integer, ByVal frequency As Integer, _
                            ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer, ByVal startradius As Double) As Bitmap
