@@ -234,6 +234,26 @@ Module modEffect
             End If
         End If
 
+        Dim ratio As Double = ((currentIndex - startFrame)/(endFrame - startFrame))
+        Dim c As Color
+        For p As Integer = 0 To output.Width - 1
+            For q As Integer = 0 To output.Height - 1
+                Dim r As Integer = (q - displacement (p)*ratio)
+                If p < 0 Then
+                    p = 0
+                ElseIf p > input.Width - 1 Then
+                    p = input.Width - 1
+                End If
+
+                If r < 0 Then
+                    r = 0
+                ElseIf r > input.Height - 1 Then
+                    r = input.Height - 1
+                End If
+                c = input.GetPixel (p, r)
+                output.SetPixel (p, q, c)
+            Next
+        Next
         Return output
     End Function
 
