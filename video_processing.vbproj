@@ -111,6 +111,7 @@
     <Compile Include="frmTimeshift.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="FastPixel.vb" />
     <Compile Include="TimeshiftSettings.vb" />
     <Compile Include="KeyframeSettings.vb" />
     <Compile Include="frmKeyframe.vb">
