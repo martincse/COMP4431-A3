@@ -93,31 +93,25 @@ Module modEffect
 
         For frameNo As Integer = startIndex To currentIndex
             Dim frame As Bitmap = New Bitmap(dirname & "\f" & CStr(frameNo) & ".bmp")
-            Dim fpin As New FastPixel(frame)
-            fpin.Lock()
+
             For x As Integer = 0 To input.Width - 1
                 For y As Integer = 0 To input.Height - 1
-                    bufferR(x, y) = (bufferR(x, y) + fpin.GetPixel(x, y).R)
-                    bufferG(x, y) = (bufferG(x, y) + fpin.GetPixel(x, y).G)
-                    bufferB(x, y) = (bufferB(x, y) + fpin.GetPixel(x, y).B)
+                    bufferR(x, y) = (bufferR(x, y) + frame.GetPixel(x, y).R)
+                    bufferG(x, y) = (bufferG(x, y) + frame.GetPixel(x, y).G)
+                    bufferB(x, y) = (bufferB(x, y) + frame.GetPixel(x, y).B)
                 Next
             Next
-            fpin.Unlock(True)
+
         Next
 
-        Dim fpout As New FastPixel(output)
-        fpout.Lock()
         For x As Integer = 0 To input.Width - 1
             For y As Integer = 0 To input.Height - 1
                 Dim red As Integer = Math.Round((bufferR(x, y) / blurCount))
                 Dim green As Integer = Math.Round((bufferG(x, y) / blurCount))
                 Dim blue As Integer = Math.Round((bufferB(x, y) / blurCount))
-                fpout.SetPixel(x, y, Color.FromArgb(red, green, blue))
+                output.SetPixel(x, y, Color.FromArgb(red, green, blue))
             Next
         Next
-
-        fpout.Unlock(True)
-        output = fpout.Bitmap
 
         Return output
     End Function
@@ -235,14 +229,6 @@ Module modEffect
 
         Dim s, t As Integer
 
-        Dim fpin1 As FastPixel = New FastPixel(input1)
-        Dim fpin2 As FastPixel = New FastPixel(input2)
-        Dim fpout As FastPixel = New FastPixel(output)
-
-        fpin1.Lock()
-        fpin2.Lock()
-        fpout.Lock()
-
         Select Case type
 
             'Wipe
@@ -264,10 +250,10 @@ Module modEffect
                         End Select
 
                         If condition Then
-                            fpout.SetPixel(x, y,
-                                       fpin2.GetPixel(((x * fpin2.Width) / fpin1.Width), ((y * fpin2.Height) / fpin1.Height)))
+                            output.SetPixel(x, y,
+                                       input2.GetPixel(((x * input2.Width) / input1.Width), ((y * input2.Height) / input1.Height)))
                         Else
-                            fpout.SetPixel(x, y, fpin1.GetPixel(x, y))
+                            output.SetPixel(x, y, input1.GetPixel(x, y))
                         End If
                     Next
                 Next
@@ -305,19 +291,15 @@ Module modEffect
                 For s = 0 To outWidthBound
                     For t = 0 To outHeightBound
                         If IsInput2(t) Then
-                            fpout.SetPixel(s, t,
-                                            fpin2.GetPixel((s * input2.Width) / input1.Width, (t * input2.Height) / input1.Height))
+                            output.SetPixel(s, t,
+                                            input2.GetPixel((s * input2.Width) / input1.Width, (t * input2.Height) / input1.Height))
                         Else
-                            fpout.SetPixel(s, t, fpin1.GetPixel(s, t))
+                            output.SetPixel(s, t, input1.GetPixel(s, t))
                         End If
                     Next
                 Next
         End Select
 
-        fpin1.Unlock(True)
-        fpin2.Unlock(True)
-        fpout.Unlock(True)
-        output = fpout.Bitmap
         Return output
     End Function
 
@@ -326,14 +308,7 @@ Module modEffect
                                ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer,
                                ByVal newOp As Boolean) As Bitmap
         Dim output As New Bitmap (input1.Width, input1.Height, PixelFormat.Format24bppRgb)
-        Dim fpin1 As FastPixel = New FastPixel (input1)
-        Dim fpin2 As FastPixel = New FastPixel (input2)
-        Dim fpout As FastPixel = New FastPixel (output)
-        Dim cutoff As Integer = input1.Width*position/100
-
-        fpin1.Lock()
-        fpin2.Lock()
-        fpout.Lock()
+        Dim cutoff As Integer = input1.Width * position / 100
 
         For x As Integer = 0 To input1.Width - 1
             For y As Integer = 0 To input1.Height - 1
@@ -341,39 +316,36 @@ Module modEffect
                     Dim ratio As Double = (x - (cutoff - region/2))/region
                     If x < 0 Then
                         x = 0
-                    ElseIf x > fpin1.Width - 1 Then
-                        x = fpin1.Width - 1
+                    ElseIf x > input1.Width - 1 Then
+                        x = input1.Width - 1
                     End If
 
                     If y < 0 Then
                         y = 0
-                    ElseIf y > fpin1.Height - 1 Then
-                        y = fpin1.Height - 1
+                    ElseIf y > input1.Height - 1 Then
+                        y = input1.Height - 1
                     End If
-                    Dim c1 As Color = fpin1.GetPixel (x, y)
-                    If x > fpin2.Width - 1 Then
-                        x = fpin2.Width - 1
+                    Dim c1 As Color = input1.GetPixel(x, y)
+                    If x > input2.Width - 1 Then
+                        x = input2.Width - 1
                     End If
-                    If y > fpin2.Height - 1 Then
-                        y = fpin2.Height - 1
+                    If y > input2.Height - 1 Then
+                        y = input2.Height - 1
                     End If
-                    Dim c2 As Color = fpin2.GetPixel (x, y)
+                    Dim c2 As Color = input2.GetPixel(x, y)
                     Dim red, green, blue As Integer
                     red = c1.R*(1 - ratio) + c2.R*ratio
                     green = c1.G*(1 - ratio) + c2.G*ratio
                     blue = c1.B*(1 - ratio) + c2.B*ratio
-                    fpout.SetPixel (x, y, Color.FromArgb (red, green, blue))
+                    output.SetPixel(x, y, Color.FromArgb(red, green, blue))
                 ElseIf (x < cutoff - region/2) Then
-                    fpout.SetPixel (x, y, fpin1.GetPixel (x, y))
+                    output.SetPixel(x, y, input1.GetPixel(x, y))
                 ElseIf (x > cutoff + region/2) Then
-                    fpout.SetPixel (x, y, fpin2.GetPixel (x, y))
+                    output.SetPixel(x, y, input2.GetPixel(x, y))
                 End If
             Next
         Next
 
-        fpin1.Unlock (True)
-        fpin2.Unlock (True)
-        fpout.Unlock (True)
         Return output
     End Function
 
