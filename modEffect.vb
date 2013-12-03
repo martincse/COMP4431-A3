@@ -76,9 +76,10 @@ Module modEffect
         Dim output As New Bitmap(input.Width, input.Height, Imaging.PixelFormat.Format24bppRgb)
         ' You need to initialize the buffers at the start of the operation
 
-        Static Dim bufferR(input.Width, input.Height) As Integer
-        Static Dim bufferG(input.Width, input.Height) As Integer
-        Static Dim bufferB(input.Width, input.Height) As Integer
+        Dim bufferR(input.Width, input.Height) As Integer
+        Dim bufferG(input.Width, input.Height) As Integer
+        Dim bufferB(input.Width, input.Height) As Integer
+
         Dim startIndex As Integer
         Array.Clear(bufferR, 0, bufferR.Length)
         Array.Clear(bufferG, 0, bufferG.Length)
@@ -151,12 +152,13 @@ Module modEffect
         Return output
     End Function
 
+    Dim displacement() As Integer = Nothing
+    
     Public Function Melt(ByRef input As Bitmap, _
                          ByVal useSine As Boolean, ByVal amplitude As Integer, ByVal cycle As Integer, _
                          ByVal useRandom As Boolean, ByVal offset As Integer, ByVal period As Integer, _
                          ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer, ByVal newOp As Boolean) As Bitmap
         Dim output As New Bitmap(input.Width, input.Height, Imaging.PixelFormat.Format24bppRgb)
-        Static Dim displacement() As Integer = Nothing
 
         If newOp Then
             ReDim displacement(input.Width - 1)
