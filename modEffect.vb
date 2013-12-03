@@ -75,29 +75,22 @@ Module modEffect
                                 ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer,
                                 ByVal newOp As Boolean,
                                 ByVal dirname As String) As Bitmap
+        
         Dim output As New Bitmap (input.Width, input.Height, PixelFormat.Format24bppRgb)
-        ' You need to initialize the buffers at the start of the operation
-
+        
         Dim bufferR(input.Width, input.Height) As Integer
         Dim bufferG(input.Width, input.Height) As Integer
         Dim bufferB(input.Width, input.Height) As Integer
 
-        Dim startIndex As Integer
-        Array.Clear (bufferR, 0, bufferR.Length)
-        Array.Clear (bufferG, 0, bufferG.Length)
-        Array.Clear (bufferB, 0, bufferB.Length)
-        If ((currentIndex - blurCount + 1) < 0) Then
-            startIndex = 0
-        Else
-            startIndex = currentIndex - blurCount + 1
-        End If
-
-
-        For frameNo As Integer = startIndex To currentIndex
-            Dim frame As Bitmap = New Bitmap (dirname & "\f" & CStr (frameNo) & ".bmp")
+        Dim startIndex As Integer = IIf ((currentIndex - blurCount + 1) < 0, 0, currentIndex - blurCount + 1)
+    
+        For frameIndex As Integer = startIndex To currentIndex
+            
+            Dim frame As Bitmap = New Bitmap (dirname & "\f" & CStr (frameIndex) & ".bmp")
 
             For x As Integer = 0 To input.Width - 1
                 For y As Integer = 0 To input.Height - 1
+                    
                     bufferR (x, y) = (bufferR (x, y) + frame.GetPixel (x, y).R)
                     bufferG (x, y) = (bufferG (x, y) + frame.GetPixel (x, y).G)
                     bufferB (x, y) = (bufferB (x, y) + frame.GetPixel (x, y).B)
@@ -108,6 +101,7 @@ Module modEffect
 
         For x As Integer = 0 To input.Width - 1
             For y As Integer = 0 To input.Height - 1
+                
                 Dim red As Integer = Math.Round ((bufferR (x, y)/blurCount))
                 Dim green As Integer = Math.Round ((bufferG (x, y)/blurCount))
                 Dim blue As Integer = Math.Round ((bufferB (x, y)/blurCount))
@@ -122,17 +116,22 @@ Module modEffect
     Public Function Ripple (ByRef input As Bitmap, ByVal amplitude As Integer, ByVal frequency As Integer,
                             ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer,
                             ByVal startradius As Double) As Bitmap
+       
         Dim output As New Bitmap (input.Width, input.Height, PixelFormat.Format24bppRgb)
 
         Dim center As New PointF (input.Width/2.0#, input.Height/2.0#)
         Dim diagonal As Double = Math.Sqrt (input.Width^2 + input.Height^2)
         Dim ratio As Double = CDbl (currentIndex - startFrame)/CDbl (endFrame - startFrame)
         Dim frameradius As Double = diagonal/2.0#*ratio
+        
         For x As Integer = 0 To output.Width - 1
             For y As Integer = 0 To output.Height - 1
+                
                 Dim radius As Double = Math.Sqrt ((x - center.X)^2 + (y - center.Y)^2)
                 Dim angle As Double = Math.Atan2 (y - center.Y, x - center.X)
+                
                 Dim c As Color
+               
                 If radius > frameradius Or frameradius = 0 Then
                     c = GetPixel (input, x, y)
                 Else
@@ -142,6 +141,7 @@ Module modEffect
                     Dim newY As Integer = input.Height - ((- newRadius*Math.Sin (angle)) + center.Y)
                     c = GetPixel (input, CInt (newX), CInt (newY))
                 End If
+                
                 output.SetPixel (x, y, c)
             Next
         Next
