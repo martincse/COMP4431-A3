@@ -257,48 +257,104 @@ Module modEffect
         Return output
     End Function
 
-    Public Function Transition(ByRef input1 As Bitmap, ByRef input2 As Bitmap, ByVal type As Integer, ByVal duration As Double, ByVal orientation As Integer, _
-                               ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer, ByVal newOp As Boolean) As Bitmap
-        Dim output As New Bitmap(input1.Width, input1.Height, Imaging.PixelFormat.Format24bppRgb)
-        Dim percentage As Double = CDbl(currentIndex - startFrame) / CDbl(endFrame - startFrame)
+    Public Function Transition (ByRef input1 As Bitmap, ByRef input2 As Bitmap, ByVal type As Integer,
+                                ByVal duration As Double, ByVal orientation As Integer,
+                                ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer,
+                                ByVal newOp As Boolean) As Bitmap
+        Dim output As New Bitmap (input1.Width, input1.Height, PixelFormat.Format24bppRgb)
+        Dim TransLast As Integer = (endFrame - startFrame)*duration
+        Dim TransStart As Integer = ((endFrame - startFrame) - TransLast)/2 + startFrame
+        Dim percentage As Double = (currentIndex - TransStart)/TransLast
+        Dim widthBound As Integer = input1.Width - 1
+        Dim heightBound As Integer = input1.Height - 1
 
-        If newOp Then
+        Static IsInput2(input1.Height - 1) As Boolean
+        Static rate As Double = IsInput2.Length()/TransLast
+        Static IsEnd As Boolean = False
 
-            Select Case type
+        Dim s, t As Integer
 
-                'Wipe
-                Case 0
-                    Dim condition As Boolean = False
-                    Dim c As Color
+        Dim fpin1 As FastPixel = New FastPixel (input1)
+        Dim fpin2 As FastPixel = New FastPixel (input2)
+        Dim fpout As FastPixel = New FastPixel (output)
 
-                    For x As Integer = 0 To output.Width - 1
-                        For y As Integer = 0 To output.Height - 1
-                            c = GetPixel(input1, x, y)
-                            Select Case orientation
-                                Case 0
-                                    condition = x / input1.Width < percentage
-                                Case 1
-                                    condition = (input1.Width - x) / input1.Width < percentage
-                                Case 2
-                                    condition = y / input1.Height < percentage
-                                Case 3
-                                    condition = (input1.Height - y) / input1.Height < percentage
-                            End Select
+        fpin1.Lock()
+        fpin2.Lock()
+        fpout.Lock()
 
-                            If condition Then
-                                c = GetPixel(input2, x * input2.Width / input1.Width, y * input2.Height / input1.Height)
-                            End If
-                            output.SetPixel(x, y, c)
-                        Next
-                    Next
-                Case 1
-
-            End Select
-
+        If (type = 0) Then
+            Dim x As Integer
+            For x = 0 To widthBound
+                Dim y As Integer
+                For y = 0 To heightBound
+                    Dim b As Boolean = False
+                    Select Case orientation
+                        Case 0
+                            b = (((input1.Width - x)/input1.Width) < percentage)
+                            Exit Select
+                        Case 1
+                            b = ((x/input1.Width) < percentage)
+                            Exit Select
+                        Case 2
+                            b = (((input1.Height - y)/input1.Height) < percentage)
+                            Exit Select
+                        Case 3
+                            b = ((y/input1.Height) < percentage)
+                    End Select
+                    If (b) Then
+                        fpout.SetPixel (x, y,
+                                        fpin2.GetPixel (((x*fpin2.Width)/fpin1.Width), ((y*fpin2.Height)/fpin1.Height)))
+                    Else
+                        fpout.SetPixel (x, y, fpin1.GetPixel (x, y))
+                    End If
+                Next
+            Next
+        ElseIf (type = 1) Then
+            If newOp Then
+                IsInput2 = New Boolean(input1.Height - 1) {}
+                ReDim IsInput2(input1.Height - 1)
+                rate = IsInput2.Length/IIf (TransLast = 0, 1, TransLast)
+                IsEnd = False
+            End If
+            If (currentIndex >= TransStart) Then
+                For s = 1 To rate
+                    Dim random As New Random
+                    Dim index As Integer = random.Next ((input1.Height - 1))
+                    Dim max As Integer = 1000
+                    Do While IsInput2 (index)
+                        max -= 1
+                        If (max = 0) Then
+                            IsEnd = True
+                            Exit Do
+                        End If
+                        index = random.Next ((input1.Height - 1))
+                    Loop
+                    IsInput2 (index) = True
+                Next
+            End If
+            If IsEnd Then
+                For t = 0 To heightBound
+                    IsInput2 (t) = True
+                Next
+            End If
+            Dim outWidthBound As Integer = output.Width - 1
+            Dim outHeightBound As Integer = output.Height - 1
+            For s = 0 To outWidthBound
+                For t = 0 To outHeightBound
+                    If IsInput2 (t) Then
+                        fpout.SetPixel (s, t,
+                                        fpin2.GetPixel ((s*input2.Width)/input1.Width, (t*input2.Height)/input1.Height))
+                    Else
+                        fpout.SetPixel (s, t, fpin1.GetPixel (s, t))
+                    End If
+                Next
+            Next
         End If
 
-
-
+        fpin1.Unlock (True)
+        fpin2.Unlock (True)
+        fpout.Unlock (True)
+        output = fpout.Bitmap
         Return output
     End Function
 
