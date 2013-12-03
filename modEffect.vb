@@ -70,49 +70,6 @@ Module modEffect
         Return output
     End Function
 
-    Dim frames As Generic.List(Of Bitmap) = New Generic.List(Of Bitmap)
-
-'    Public Function MotionBlur(ByRef input As Bitmap, ByVal blurCount As Integer, _
-'                               ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer, ByVal newOp As Boolean, _
-'                               ByVal dirname As String) As Bitmap
-'        Dim output As New Bitmap(input.Width, input.Height, Imaging.PixelFormat.Format24bppRgb)
-'
-'        Dim r, g, b As Integer
-'        Dim c As Color
-'        Dim buffer As Bitmap = New Bitmap(input.Width, input.Height, Imaging.PixelFormat.Format24bppRgb)
-'
-'        If (frames.Count = blurCount) Then
-'
-'            For frame As Integer = currentIndex - blurCount + 1 To currentIndex
-'                For x As Integer = 0 To output.Width - 1
-'                    For y As Integer = 0 To output.Height - 1
-'                        c = GetPixel(input, x, y)
-'                        r = c.R + GetPixel(frames.Item(frame), x, y).R
-'                        g = c.G + GetPixel(frames.Item(frame), x, y).G
-'                        b = c.B + GetPixel(frames.Item(frame), x, y).B
-'                        buffer.SetPixel(x, y, Color.FromArgb(r, g, b))
-'                    Next
-'                Next
-'            Next
-'
-'            For x As Integer = 0 To output.Width - 1
-'                For y As Integer = 0 To output.Height - 1
-'                    c = GetPixel(buffer, x, y)
-'                    r = c.R / blurCount
-'                    g = c.G / blurCount
-'                    b = c.B / blurCount
-'                    output.SetPixel(x, y, Color.FromArgb(r, g, b))
-'                Next
-'            Next
-'
-'            frames.Clear()
-'        Else
-'            frames.Add(input)
-'        End If
-'
-'        Return output
-'    End Function
-
     Public Function MotionBlur(ByRef input As Bitmap, ByVal blurCount As Integer, _
                                   ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer, ByVal newOp As Boolean, _
                                   ByVal dirname As String) As Bitmap
