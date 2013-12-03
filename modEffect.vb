@@ -323,13 +323,16 @@ Module modEffect
                                ByVal region As Integer,
                                ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer,
                                ByVal newOp As Boolean) As Bitmap
+        
         Dim output As New Bitmap (input1.Width, input1.Height, PixelFormat.Format24bppRgb)
         Dim cutoff As Integer = input1.Width*position/100
 
         For x As Integer = 0 To input1.Width - 1
             For y As Integer = 0 To input1.Height - 1
+               
                 If (x >= cutoff - region/2) And (x <= cutoff + region/2) Then
                     Dim ratio As Double = (x - (cutoff - region/2))/region
+                    
                     If x < 0 Then
                         x = 0
                     ElseIf x > input1.Width - 1 Then
@@ -341,7 +344,9 @@ Module modEffect
                     ElseIf y > input1.Height - 1 Then
                         y = input1.Height - 1
                     End If
+                    
                     Dim c1 As Color = input1.GetPixel (x, y)
+                    
                     If x > input2.Width - 1 Then
                         x = input2.Width - 1
                     End If
@@ -349,16 +354,22 @@ Module modEffect
                         y = input2.Height - 1
                     End If
                     Dim c2 As Color = input2.GetPixel (x, y)
-                    Dim red, green, blue As Integer
-                    red = c1.R*(1 - ratio) + c2.R*ratio
-                    green = c1.G*(1 - ratio) + c2.G*ratio
-                    blue = c1.B*(1 - ratio) + c2.B*ratio
-                    output.SetPixel (x, y, Color.FromArgb (red, green, blue))
-                ElseIf (x < cutoff - region/2) Then
+                    
+                    Dim r, g, b As Integer
+                    r = c1.R*(1 - ratio) + c2.R*ratio
+                    g = c1.G*(1 - ratio) + c2.G*ratio
+                    b = c1.B*(1 - ratio) + c2.B*ratio
+                    
+                    output.SetPixel (x, y, Color.FromArgb (r, g, b))
+                    
+                ElseIf (x < cutoff - region/2) Then                    
                     output.SetPixel (x, y, input1.GetPixel (x, y))
+                    
                 ElseIf (x > cutoff + region/2) Then
                     output.SetPixel (x, y, input2.GetPixel (x, y))
+                    
                 End If
+                
             Next
         Next
 
