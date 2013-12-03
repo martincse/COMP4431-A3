@@ -149,8 +149,8 @@ Module modEffect
         Return output
     End Function
 
-    Dim displacement() As Integer = Nothing
-
+    Dim _displacement() As Integer = Nothing
+    
     Public Function Melt (ByRef input As Bitmap,
                           ByVal useSine As Boolean, ByVal amplitude As Integer, ByVal cycle As Integer,
                           ByVal useRandom As Boolean, ByVal offset As Integer, ByVal period As Integer,
@@ -159,13 +159,15 @@ Module modEffect
         Dim output As New Bitmap (input.Width, input.Height, PixelFormat.Format24bppRgb)
 
         If newOp Then
-            ReDim displacement(input.Width - 1)
+            
+            ReDim _displacement(input.Width - 1)
+            
             If useSine Then
                 For x As Integer = 0 To input.Width - 1
-                    displacement (x) = displacement (x) +
-                                       Math.Abs (amplitude*Math.Sin (2.0#*Math.PI*cycle*x/(input.Width - 1)))
+                    _displacement (x) = _displacement (x) + Math.Abs (amplitude*Math.Sin (2.0#*Math.PI*cycle*x/(input.Width - 1)))
                 Next
             End If
+            
             If useRandom Then
                 Dim currentOffset As Integer
                 Dim currentPeriod As Integer
@@ -186,7 +188,7 @@ Module modEffect
                             sign = - 1*sign
                         End If
                         If i < input.Width Then
-                            displacement (i) = displacement (i) + currentOffset
+                            _displacement (i) = _displacement (i) + currentOffset
                         End If
                     Next
                     x = x + currentPeriod
@@ -196,13 +198,13 @@ Module modEffect
 
         Dim ratio As Double = ((currentIndex - startFrame)/(endFrame - startFrame))
         Dim c As Color
-        For p As Integer = 0 To output.Width - 1
-            For q As Integer = 0 To output.Height - 1
-                Dim r As Integer = (q - displacement (p)*ratio)
-                If p < 0 Then
-                    p = 0
-                ElseIf p > input.Width - 1 Then
-                    p = input.Width - 1
+        For w As Integer = 0 To output.Width - 1
+            For h As Integer = 0 To output.Height - 1
+                Dim r As Integer = (h - _displacement (w)*ratio)
+                If w < 0 Then
+                    w = 0
+                ElseIf w > input.Width - 1 Then
+                    w = input.Width - 1
                 End If
 
                 If r < 0 Then
@@ -210,8 +212,8 @@ Module modEffect
                 ElseIf r > input.Height - 1 Then
                     r = input.Height - 1
                 End If
-                c = input.GetPixel (p, r)
-                output.SetPixel (p, q, c)
+                c = input.GetPixel (w, r)
+                output.SetPixel (w, h, c)
             Next
         Next
         Return output
