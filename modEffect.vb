@@ -219,29 +219,29 @@ Module modEffect
         Return output
     End Function
 
+    
+    dim _isInput2() As Boolean
+    dim _rate As Double 
+    dim _isEnd As Boolean = False
     Public Function Transition (ByRef input1 As Bitmap, ByRef input2 As Bitmap, ByVal type As Integer,
                                 ByVal duration As Double, ByVal orientation As Integer,
                                 ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer,
                                 ByVal newOp As Boolean) As Bitmap
         Dim output As New Bitmap (input1.Width, input1.Height, PixelFormat.Format24bppRgb)
-        Dim TransLast As Integer = (endFrame - startFrame)*duration
-        Dim TransStart As Integer = ((endFrame - startFrame) - TransLast)/2 + startFrame
-        Dim percentage As Double = (currentIndex - TransStart)/TransLast
+       
+        Dim last As Integer = (endFrame - startFrame)*duration
+        Dim start As Integer = ((endFrame - startFrame) - last)/2 + startFrame
+        Dim percentage As Double = (currentIndex - start)/last
+        
         Dim widthBound As Integer = input1.Width - 1
         Dim heightBound As Integer = input1.Height - 1
-
-        Static IsInput2(input1.Height - 1) As Boolean
-        Static rate As Double = IsInput2.Length()/TransLast
-        Static IsEnd As Boolean = False
-
-        Dim s, t As Integer
-
+      
         Select Case type
 
             'Wipe
             Case 0
+                
                 Dim condition As Boolean = False
-
                 For x As Integer = 0 To widthBound
                     For y As Integer = 0 To heightBound
 
@@ -265,40 +265,47 @@ Module modEffect
                         End If
                     Next
                 Next
-                'dissolve
+                
+            'dissolve
             Case 1
+                       
+                 Dim s, t As Integer
+                
                 If newOp Then
-                    IsInput2 = New Boolean(input1.Height - 1) {}
-                    ReDim IsInput2(input1.Height - 1)
-                    rate = IsInput2.Length/IIf (TransLast = 0, 1, TransLast)
-                    IsEnd = False
+                    _isInput2 = New Boolean(input1.Height - 1) {}
+                    ReDim _isInput2(input1.Height - 1)
+                    _rate = _isInput2.Length/IIf (last = 0, 1, last)
+                    _isEnd = False
                 End If
-                If (currentIndex >= TransStart) Then
-                    For s = 1 To rate
+                
+                If (currentIndex >= start) Then
+                    For s = 1 To _rate
                         Dim random As New Random
                         Dim index As Integer = random.Next ((input1.Height - 1))
                         Dim max As Integer = 1000
-                        Do While IsInput2 (index)
+                        Do While _isInput2 (index)
                             max -= 1
                             If (max = 0) Then
-                                IsEnd = True
+                                _isEnd = True
                                 Exit Do
                             End If
                             index = random.Next ((input1.Height - 1))
                         Loop
-                        IsInput2 (index) = True
+                        _isInput2 (index) = True
                     Next
                 End If
-                If IsEnd Then
+                
+                If _isEnd Then
                     For t = 0 To heightBound
-                        IsInput2 (t) = True
+                        _isInput2 (t) = True
                     Next
                 End If
+                
                 Dim outWidthBound As Integer = output.Width - 1
                 Dim outHeightBound As Integer = output.Height - 1
                 For s = 0 To outWidthBound
                     For t = 0 To outHeightBound
-                        If IsInput2 (t) Then
+                        If _isInput2 (t) Then
                             output.SetPixel (s, t,
                                              input2.GetPixel ((s*input2.Width)/input1.Width,
                                                               (t*input2.Height)/input1.Height))
