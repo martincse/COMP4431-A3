@@ -281,10 +281,60 @@ Module modEffect
 
         Return output
     End Function
-    Public Function Timeshift(ByRef input1 As Bitmap, ByRef input2 As Bitmap, ByVal position As Integer, ByVal region As Integer, _
-                               ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer, ByVal newOp As Boolean) As Bitmap
-        Dim output As New Bitmap(input1.Width, input1.Height, Imaging.PixelFormat.Format24bppRgb)
 
+    Public Function Timeshift (ByRef input1 As Bitmap, ByRef input2 As Bitmap, ByVal position As Integer,
+                               ByVal region As Integer,
+                               ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer,
+                               ByVal newOp As Boolean) As Bitmap
+        Dim output As New Bitmap (input1.Width, input1.Height, PixelFormat.Format24bppRgb)
+        Dim fpin1 As FastPixel = New FastPixel (input1)
+        Dim fpin2 As FastPixel = New FastPixel (input2)
+        Dim fpout As FastPixel = New FastPixel (output)
+        Dim cutoff As Integer = input1.Width*position/100
+
+        fpin1.Lock()
+        fpin2.Lock()
+        fpout.Lock()
+
+        For x As Integer = 0 To input1.Width - 1
+            For y As Integer = 0 To input1.Height - 1
+                If (x >= cutoff - region/2) And (x <= cutoff + region/2) Then
+                    Dim ratio As Double = (x - (cutoff - region/2))/region
+                    If x < 0 Then
+                        x = 0
+                    ElseIf x > fpin1.Width - 1 Then
+                        x = fpin1.Width - 1
+                    End If
+
+                    If y < 0 Then
+                        y = 0
+                    ElseIf y > fpin1.Height - 1 Then
+                        y = fpin1.Height - 1
+                    End If
+                    Dim c1 As Color = fpin1.GetPixel (x, y)
+                    If x > fpin2.Width - 1 Then
+                        x = fpin2.Width - 1
+                    End If
+                    If y > fpin2.Height - 1 Then
+                        y = fpin2.Height - 1
+                    End If
+                    Dim c2 As Color = fpin2.GetPixel (x, y)
+                    Dim red, green, blue As Integer
+                    red = c1.R*(1 - ratio) + c2.R*ratio
+                    green = c1.G*(1 - ratio) + c2.G*ratio
+                    blue = c1.B*(1 - ratio) + c2.B*ratio
+                    fpout.SetPixel (x, y, Color.FromArgb (red, green, blue))
+                ElseIf (x < cutoff - region/2) Then
+                    fpout.SetPixel (x, y, fpin1.GetPixel (x, y))
+                ElseIf (x > cutoff + region/2) Then
+                    fpout.SetPixel (x, y, fpin2.GetPixel (x, y))
+                End If
+            Next
+        Next
+
+        fpin1.Unlock (True)
+        fpin2.Unlock (True)
+        fpout.Unlock (True)
         Return output
     End Function
 
