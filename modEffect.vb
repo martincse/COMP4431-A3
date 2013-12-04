@@ -246,14 +246,14 @@ Module modEffect
                     For y As Integer = 0 To heightBound
 
                         Select Case orientation
-                            Case 1
-                                condition = x/input1.Width < percentage
                             Case 0
                                 condition = (input1.Width - x)/input1.Width < percentage
-                            Case 3
-                                condition = y/input1.Height < percentage
+                            Case 1
+                                condition = x/input1.Width < percentage                                                     
                             Case 2
                                 condition = (input1.Height - y)/input1.Height < percentage
+                            Case 3
+                                condition = y/input1.Height < percentage
                         End Select
 
                         If condition Then
