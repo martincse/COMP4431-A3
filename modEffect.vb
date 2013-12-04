@@ -102,10 +102,11 @@ Module modEffect
         For x As Integer = 0 To input.Width - 1
             For y As Integer = 0 To input.Height - 1
                 
-                Dim red As Integer = Math.Round ((bufferR (x, y)/blurCount))
-                Dim green As Integer = Math.Round ((bufferG (x, y)/blurCount))
-                Dim blue As Integer = Math.Round ((bufferB (x, y)/blurCount))
-                output.SetPixel (x, y, Color.FromArgb (red, green, blue))
+                Dim r As Integer = (bufferR (x, y)/blurCount)
+                Dim g As Integer = (bufferG (x, y)/blurCount)
+                Dim b As Integer = (bufferB (x, y)/blurCount)
+               
+                output.SetPixel (x, y, Color.FromArgb (r, g, b))
             Next
         Next
 
@@ -197,23 +198,12 @@ Module modEffect
         End If
 
         Dim ratio As Double = ((currentIndex - startFrame)/(endFrame - startFrame))
-        Dim c As Color
         For w As Integer = 0 To output.Width - 1
             For h As Integer = 0 To output.Height - 1
                 Dim r As Integer = (h - _displacement (w)*ratio)
-                If w < 0 Then
-                    w = 0
-                ElseIf w > input.Width - 1 Then
-                    w = input.Width - 1
-                End If
-
-                If r < 0 Then
-                    r = 0
-                ElseIf r > input.Height - 1 Then
-                    r = input.Height - 1
-                End If
-                c = input.GetPixel (w, r)
-                output.SetPixel (w, h, c)
+                w = Bounded(w,0,input.Width-1)
+                r = Bounded(r,0,input.Height-1)
+                output.SetPixel (w, h, input.GetPixel (w, r))
             Next
         Next
         Return output
@@ -246,14 +236,14 @@ Module modEffect
                     For y As Integer = 0 To heightBound
 
                         Select Case orientation
-                            Case 1
-                                condition = x/input1.Width < percentage
                             Case 0
                                 condition = (input1.Width - x)/input1.Width < percentage
-                            Case 3
-                                condition = y/input1.Height < percentage
+                            Case 1
+                                condition = x/input1.Width < percentage                                                     
                             Case 2
                                 condition = (input1.Height - y)/input1.Height < percentage
+                            Case 3
+                                condition = y/input1.Height < percentage
                         End Select
 
                         If condition Then
@@ -268,18 +258,16 @@ Module modEffect
                 
             'dissolve
             Case 1
-                       
-                 Dim s, t As Integer
-                
+                      
                 If newOp Then
-                    _isInput2 = New Boolean(input1.Height - 1) {}
                     ReDim _isInput2(input1.Height - 1)
                     _rate = _isInput2.Length/IIf (last = 0, 1, last)
                     _isEnd = False
                 End If
                 
                 If (currentIndex >= start) Then
-                    For s = 1 To _rate
+
+                    For i As Integer = 1 To _rate
                         Dim random As New Random
                         Dim index As Integer = random.Next ((input1.Height - 1))
                         Dim max As Integer = 1000
@@ -296,21 +284,21 @@ Module modEffect
                 End If
                 
                 If _isEnd Then
-                    For t = 0 To heightBound
+                    For t As integer = 0 To heightBound
                         _isInput2 (t) = True
                     Next
                 End If
                 
                 Dim outWidthBound As Integer = output.Width - 1
                 Dim outHeightBound As Integer = output.Height - 1
-                For s = 0 To outWidthBound
-                    For t = 0 To outHeightBound
-                        If _isInput2 (t) Then
-                            output.SetPixel (s, t,
-                                             input2.GetPixel ((s*input2.Width)/input1.Width,
-                                                              (t*input2.Height)/input1.Height))
+                For x As Integer = 0 To outWidthBound
+                    For y As Integer = 0 To outHeightBound
+                        If _isInput2 (y) Then
+                            output.SetPixel (x, y,
+                                             input2.GetPixel ((x*input2.Width)/input1.Width,
+                                                              (y*input2.Height)/input1.Height))
                         Else
-                            output.SetPixel (s, t, input1.GetPixel (s, t))
+                            output.SetPixel (x, y, input1.GetPixel (x, y))
                         End If
                     Next
                 Next
@@ -319,6 +307,8 @@ Module modEffect
         Return output
     End Function
 
+
+    
     Public Function Timeshift (ByRef input1 As Bitmap, ByRef input2 As Bitmap, ByVal position As Integer,
                                ByVal region As Integer,
                                ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer,
@@ -332,28 +322,9 @@ Module modEffect
                
                 If (x >= cutoff - region/2) And (x <= cutoff + region/2) Then
                     Dim ratio As Double = (x - (cutoff - region/2))/region
-                    
-                    If x < 0 Then
-                        x = 0
-                    ElseIf x > input1.Width - 1 Then
-                        x = input1.Width - 1
-                    End If
-
-                    If y < 0 Then
-                        y = 0
-                    ElseIf y > input1.Height - 1 Then
-                        y = input1.Height - 1
-                    End If
-                    
-                    Dim c1 As Color = input1.GetPixel (x, y)
-                    
-                    If x > input2.Width - 1 Then
-                        x = input2.Width - 1
-                    End If
-                    If y > input2.Height - 1 Then
-                        y = input2.Height - 1
-                    End If
-                    Dim c2 As Color = input2.GetPixel (x, y)
+       
+                    Dim c1 As Color = input1.GetPixel (Bounded(x,0,input1.Width-1), Bounded(y,0,input1.Height-1) )                
+                    Dim c2 As Color = input2.GetPixel (Bounded(x,0,input2.Width-1), Bounded(y,0,input2.Height-1) )
                     
                     Dim r, g, b As Integer
                     r = c1.R*(1 - ratio) + c2.R*ratio
@@ -376,6 +347,16 @@ Module modEffect
         Return output
     End Function
 
+    Private Function Bounded(s,min,max) As Integer
+    
+        If s < min Then
+            s = min
+        Elseif s > max then
+            s = max
+        End If
+        Return s
+    End Function
+    
     ' Get the pixel from the bitmap with the boundary pixels correctly handled
     Private Function GetPixel (ByRef bitmap As Bitmap, ByVal x As Short, ByVal y As Short) As Color
         If x < 0 Then
