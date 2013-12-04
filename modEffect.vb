@@ -268,9 +268,7 @@ Module modEffect
                 
             'dissolve
             Case 1
-                       
-                 Dim s, t As Integer
-                
+                      
                 If newOp Then
                     ReDim _isInput2(input1.Height - 1)
                     _rate = _isInput2.Length/IIf (last = 0, 1, last)
@@ -278,7 +276,8 @@ Module modEffect
                 End If
                 
                 If (currentIndex >= start) Then
-                    For s = 1 To _rate
+
+                    For i As Integer = 1 To _rate
                         Dim random As New Random
                         Dim index As Integer = random.Next ((input1.Height - 1))
                         Dim max As Integer = 1000
@@ -295,21 +294,21 @@ Module modEffect
                 End If
                 
                 If _isEnd Then
-                    For t = 0 To heightBound
+                    For t As integer = 0 To heightBound
                         _isInput2 (t) = True
                     Next
                 End If
                 
                 Dim outWidthBound As Integer = output.Width - 1
                 Dim outHeightBound As Integer = output.Height - 1
-                For s = 0 To outWidthBound
-                    For t = 0 To outHeightBound
-                        If _isInput2 (t) Then
-                            output.SetPixel (s, t,
-                                             input2.GetPixel ((s*input2.Width)/input1.Width,
-                                                              (t*input2.Height)/input1.Height))
+                For x As Integer = 0 To outWidthBound
+                    For y As Integer = 0 To outHeightBound
+                        If _isInput2 (y) Then
+                            output.SetPixel (x, y,
+                                             input2.GetPixel ((x*input2.Width)/input1.Width,
+                                                              (y*input2.Height)/input1.Height))
                         Else
-                            output.SetPixel (s, t, input1.GetPixel (s, t))
+                            output.SetPixel (x, y, input1.GetPixel (x, y))
                         End If
                     Next
                 Next
