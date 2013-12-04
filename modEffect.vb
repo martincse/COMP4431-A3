@@ -272,7 +272,6 @@ Module modEffect
                  Dim s, t As Integer
                 
                 If newOp Then
-                    _isInput2 = New Boolean(input1.Height - 1) {}
                     ReDim _isInput2(input1.Height - 1)
                     _rate = _isInput2.Length/IIf (last = 0, 1, last)
                     _isEnd = False
