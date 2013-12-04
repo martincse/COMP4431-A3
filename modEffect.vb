@@ -374,6 +374,16 @@ Module modEffect
         Return output
     End Function
 
+    Private Function Bounded(s,min,max) As Integer
+    
+        If s < min Then
+            s = min
+        Elseif s > max then
+            s = max
+        End If
+        Return s
+    End Function
+    
     ' Get the pixel from the bitmap with the boundary pixels correctly handled
     Private Function GetPixel (ByRef bitmap As Bitmap, ByVal x As Short, ByVal y As Short) As Color
         If x < 0 Then
