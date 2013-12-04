@@ -197,14 +197,12 @@ Module modEffect
         End If
 
         Dim ratio As Double = ((currentIndex - startFrame)/(endFrame - startFrame))
-        Dim c As Color
         For w As Integer = 0 To output.Width - 1
             For h As Integer = 0 To output.Height - 1
                 Dim r As Integer = (h - _displacement (w)*ratio)
-                c = input.GetPixel (w, r)
-                output.SetPixel (w, h, c)
                 w = Bounded(w,0,input.Width-1)
                 r = Bounded(r,0,input.Height-1)
+                output.SetPixel (w, h, input.GetPixel (w, r))
             Next
         Next
         Return output
