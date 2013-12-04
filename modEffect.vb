@@ -317,6 +317,8 @@ Module modEffect
         Return output
     End Function
 
+
+    
     Public Function Timeshift (ByRef input1 As Bitmap, ByRef input2 As Bitmap, ByVal position As Integer,
                                ByVal region As Integer,
                                ByVal currentIndex As Integer, ByVal startFrame As Integer, ByVal endFrame As Integer,
@@ -330,28 +332,9 @@ Module modEffect
                
                 If (x >= cutoff - region/2) And (x <= cutoff + region/2) Then
                     Dim ratio As Double = (x - (cutoff - region/2))/region
-                    
-                    If x < 0 Then
-                        x = 0
-                    ElseIf x > input1.Width - 1 Then
-                        x = input1.Width - 1
-                    End If
-
-                    If y < 0 Then
-                        y = 0
-                    ElseIf y > input1.Height - 1 Then
-                        y = input1.Height - 1
-                    End If
-                    
-                    Dim c1 As Color = input1.GetPixel (x, y)
-                    
-                    If x > input2.Width - 1 Then
-                        x = input2.Width - 1
-                    End If
-                    If y > input2.Height - 1 Then
-                        y = input2.Height - 1
-                    End If
-                    Dim c2 As Color = input2.GetPixel (x, y)
+       
+                    Dim c1 As Color = input1.GetPixel (Bounded(x,0,input1.Width-1), Bounded(y,0,input1.Height-1) )                
+                    Dim c2 As Color = input2.GetPixel (Bounded(x,0,input2.Width-1), Bounded(y,0,input2.Height-1) )
                     
                     Dim r, g, b As Integer
                     r = c1.R*(1 - ratio) + c2.R*ratio
