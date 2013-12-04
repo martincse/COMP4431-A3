@@ -201,19 +201,10 @@ Module modEffect
         For w As Integer = 0 To output.Width - 1
             For h As Integer = 0 To output.Height - 1
                 Dim r As Integer = (h - _displacement (w)*ratio)
-                If w < 0 Then
-                    w = 0
-                ElseIf w > input.Width - 1 Then
-                    w = input.Width - 1
-                End If
-
-                If r < 0 Then
-                    r = 0
-                ElseIf r > input.Height - 1 Then
-                    r = input.Height - 1
-                End If
                 c = input.GetPixel (w, r)
                 output.SetPixel (w, h, c)
+                w = Bounded(w,0,input.Width-1)
+                r = Bounded(r,0,input.Height-1)
             Next
         Next
         Return output
