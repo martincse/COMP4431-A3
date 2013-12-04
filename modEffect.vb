@@ -102,10 +102,11 @@ Module modEffect
         For x As Integer = 0 To input.Width - 1
             For y As Integer = 0 To input.Height - 1
                 
-                Dim red As Integer = Math.Round ((bufferR (x, y)/blurCount))
-                Dim green As Integer = Math.Round ((bufferG (x, y)/blurCount))
-                Dim blue As Integer = Math.Round ((bufferB (x, y)/blurCount))
-                output.SetPixel (x, y, Color.FromArgb (red, green, blue))
+                Dim r As Integer = (bufferR (x, y)/blurCount)
+                Dim g As Integer = (bufferG (x, y)/blurCount)
+                Dim b As Integer = (bufferB (x, y)/blurCount)
+               
+                output.SetPixel (x, y, Color.FromArgb (r, g, b))
             Next
         Next
 
